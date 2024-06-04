@@ -10,7 +10,8 @@
 class Stack inherits IO {
   top: String;
   next: Stack;
-  
+  null: Bool;  
+
   init(i : String) : Stack {
     {
       top <- i;
@@ -19,16 +20,37 @@ class Stack inherits IO {
   };
 
   add_top(item: String): Object {
-    if (isvoid next) then 
+    if (null = true) then 
       {
-        next <- (new Stack).init(top);
+        null <- false; 
         top <- item;
+        next <- (new Stack);
+        if (isvoid next) then
+          new Object
+        else 
+          next.set_null(true)
+        fi; 
       }
-    else
-      {
-        next.add_top(top);
-        top <- item;
-      }
+    else 
+      if (isvoid next) then 
+          {
+            next <- (new Stack).init(top);
+            top <- item;
+          }
+      else 
+        if (next.get_null() = true) then 
+          {
+            next.set_top(top);
+            next.set_null(false);
+            top <- item;
+          }
+        else
+          {
+            next.add_top(top);
+            top <- item;
+          }
+        fi
+      fi
     fi
   };
 
@@ -43,18 +65,27 @@ class Stack inherits IO {
 
   pop(): String {
     let popped: String <- top in
-      {
+      { 
         if (isvoid next) then 
           {
             top <- (new String);
             next <- (new Stack);
+            null <- true;
           }
-        else 
-          {
-            top <- next.get_top();
-            next <- next.get_next();
-          }
-        fi; 
+        else
+          if (next.get_null() = true) then
+            {
+              top <- (new String);
+              next <- (new Stack);
+              null <- true;
+            }
+          else 
+            {
+              top <- next.get_top();
+              next <- next.get_next();
+            }
+          fi
+      fi;
 
         popped;
       }
@@ -76,12 +107,24 @@ class Stack inherits IO {
     next <- stack
   };
 
+  get_null(): Bool {
+    null
+  };
+
+  set_null(truth: Bool): Bool {
+    null <- truth
+  };
+
 
   display(): Stack {
-    if (isvoid next) then 
-      display_top()
-    else
-      display_all()  
+    if (null = true) then 
+      out_string("")
+    else 
+      if (isvoid next) then 
+        display_top()
+      else
+        display_all()  
+      fi
     fi
   };
 
@@ -95,7 +138,6 @@ class Stack inherits IO {
    display_all(): Stack {
     {
       out_string(top);
-      out_string("\n");
       next.display();
     }
   };
@@ -135,11 +177,19 @@ class Main inherits IO {
   };
 
   act_string(s: String) : Object {
-    if (s = "e") then  
-      case stack.pop() of 
-      s: String => evaluate(s); 
-      o: Object => { abort(); "";};
-      esac 
+    if (s = "e") then
+      if (isvoid stack) then 
+        new Object
+      else 
+        if (stack.get_null() = true) then 
+          new Object
+        else
+          case stack.pop() of 
+          s: String => evaluate(s); 
+          o: Object => { abort(); "";};
+          esac
+        fi
+      fi
     else
       if (s = "d") then 
         display()
@@ -161,7 +211,11 @@ class Main inherits IO {
       if (item = "s") then 
         stack.swap() 
       else 
-        (new Stack)
+        if (isvoid stack) then 
+          (new Object)
+        else 
+          stack.pop()
+        fi
       fi 
     fi  
   };
@@ -176,7 +230,7 @@ class Main inherits IO {
 
   display(): Object {
     if (isvoid stack) then
-      out_string("\n")
+      out_string("")
     else 
       stack.display()
     fi
